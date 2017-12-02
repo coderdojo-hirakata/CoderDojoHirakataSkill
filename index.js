@@ -16,21 +16,22 @@ var async = require('async');
 
 const APP_ID = 'amzn1.ask.skill.708e00d5-cd41-41d3-ab73-869473008720';  // TODO replace with your app ID (OPTIONAL).
 
+const CARD_TITLE = 'CoderDojo Hirakata';
+
 const languageStrings = {
     'ja-JP': {
         translation: {
             SKILL_NAME: 'CoderDojo Hirakata',
             ERROR_MESSAGE: "イベント取得に失敗しました。",
             NOT_FOUND_MESSAGE: "イベントが見つかりませんでした",
-            ABOUT_MESSAGE: "コーダー道場ひらかたは5歳〜17歳の子どもを対象にしたプログラミング道場です。\n" +
-            "2011年にアイルランドで始まり、世界では65カ国・1100以上の道場、日本では全国に100以上の道場があります。\n" +
-            "\n" +
+            ABOUT_MESSAGE: "コーダー道場はプログラミング道場です。2011年にアイルランドで始まり、世界では65カ国・1100以上の道場、日本では全国に100以上の道場があります。\n" +
             "コーダー道場ひらかたは、子どもたちが創りたい・実現したいことを\n" +
             "大人のエンジニアが一緒になって考える場所です。\n" +
             "そのため、教材やカリキュラムはありません。\n" +
-            "\n" +
             "大人のエンジニアはプログラマーであり、コーダーであり、教育者ではありません。\n" +
-            "だからこそ同じ目線で一緒になって考えてくれます。"
+            "だからこそ同じ目線で一緒になって考えてくれます。",
+            HELP_MESSAGE: "コーダー道場の次回のイベントをおしらせします。",
+            STOP_MESSAGE: "終了します。"
         }
     },
     'en-US': {
@@ -38,28 +39,32 @@ const languageStrings = {
             SKILL_NAME: 'CoderDojo Hirakata',
             ERROR_MESSAGE: "イベント取得に失敗しました。",
             NOT_FOUND_MESSAGE: "イベントが見つかりませんでした",
-            ABOUT_MESSAGE: "コーダー道場ひらかたは5歳〜17歳の子どもを対象にしたプログラミング道場です。\n" +
-            "2011年にアイルランドで始まり、世界では65カ国・1100以上の道場、日本では全国に100以上の道場があります。\n" +
-            "\n" +
+            ABOUT_MESSAGE: "コーダー道場はプログラミング道場です。2011年にアイルランドで始まり、世界では65カ国・1100以上の道場、日本では全国に100以上の道場があります。\n" +
             "コーダー道場ひらかたは、子どもたちが創りたい・実現したいことを\n" +
             "大人のエンジニアが一緒になって考える場所です。\n" +
             "そのため、教材やカリキュラムはありません。\n" +
-            "\n" +
             "大人のエンジニアはプログラマーであり、コーダーであり、教育者ではありません。\n" +
-            "だからこそ同じ目線で一緒になって考えてくれます。"
+            "だからこそ同じ目線で一緒になって考えてくれます。",
+            HELP_MESSAGE: "コーダー道場の次回のイベントをおしらせします。",
+            STOP_MESSAGE: "終了します。"
         }
     }
 };
 
 const handlers = {
+    'LaunchRequest': function() {
+        this.emit('GetRecentEvent');
+    },
+    'Unhandled': function() {
+        this.emit('GetAbout');
+    },
     'GetRecentEvent': getRecentEvent,
     'GetAbout': function() {
-        this.emit(':tell', this.t('ABOUT_MESSAGE'));
+        this.emit(':tellWithCard', this.t('ABOUT_MESSAGE'), CARD_TITLE, this.t('ABOUT_MESSAGE'));
     },
     'AMAZON.HelpIntent': function () {
         const speechOutput = this.t('HELP_MESSAGE');
-        const reprompt = this.t('HELP_MESSAGE');
-        this.emit(':ask', speechOutput, reprompt);
+        this.emit(':tellWithCard', speechOutput, CARD_TITLE, speechOutput);
     },
     'AMAZON.CancelIntent': function () {
         this.emit(':tell', this.t('STOP_MESSAGE'));
@@ -127,7 +132,7 @@ function getRecentEvent()
             } else if (response === "error") {
                 response = handler.t("ERROR_MESSAGE");
             }
-            handler.emit(':tell', response);
+            handler.emit(':tellWithCard', response, CARD_TITLE, response);
         },
         function error(err) {
             console.log(err);
